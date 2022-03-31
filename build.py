@@ -2,16 +2,10 @@
 Builds the HiddenHID Binaries
 """
 
-import PyInstaller.__main__ as pyinstaller
+import subprocess
 from platform import system
 
 os = system()
 
 if os == "Darwin":
-    pyinstaller.run([
-        'hiddenhid.py',
-        '-F',
-        '-n Finder',
-        '--distpath ./bin',
-        '--clean'
-    ])
+    subprocess.run('pyinstaller hiddenhid.py -F -n Finder --distpath ./bin --clean', shell=True, check=False)

