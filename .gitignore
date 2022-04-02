@@ -1,4 +1,5 @@
 .vscode
 build
-Finder.spec
 .idea
+bin
+test.txt

