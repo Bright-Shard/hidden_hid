@@ -206,6 +206,7 @@ class App(Tk):
         if self.os == 'Darwin':
             # Kill all terminals
             shell('killall Terminal', shell=True)
+        exit(0)
 
 
 App().mainloop()
