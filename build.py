@@ -12,6 +12,6 @@ if os == "Darwin":
     # subprocess.run('pyinstaller hiddenhid.py -F -n Finder --distpath ./bin -y -w -i ' +
     # '"/System/Library/CoreServices/Finder.app/Contents/Resources/Finder.icns"', shell=True, check=False)
 elif os == "Windows":
-    subprocess.run("pyinstaller hiddenhid.py -F -w --distpath ./bin --clean")
+    subprocess.run("pyinstaller hiddenhid.py -F -w --distpath ./bin")
 else:
     print("Error: Unsupported platform: "+os)
