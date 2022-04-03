@@ -167,24 +167,24 @@ class App(Tk):
             self.quit()
 
         # Split the command up to get the arguments
-        splitCommand = self.entry.get().split(' ')
+        splitCommand = command.split(' ')
+        self.log(splitCommand[0])
 
         # If the command is a shortcut, run the shortcut
-        if splitCommand[0] in self.shortcuts:
+        if splitCommand[0] in self.shortcuts[self.os]:
             # Print that a shortcut was detected
             self.log("-> Shortcut detected! Running a shortcut instead.")
             # The shortcut
-            shortcut = self.shortcuts[splitCommand[0]]
+            shortcut = self.shortcuts[self.os][splitCommand[0]]
             # If the shortcut is a string, run it as a shell script
             if type(shortcut) == str:
-                shell(shortcut.format(args=splitCommand[1:]))
+                shell(shortcut.format(args=splitCommand[1:]), shell=True, check=False)
             # If the shortcut is a function, run the python code
             elif callable(shortcut):
                 shortcut(splitCommand[1:])
-            return
-
-        # Run the command
-        shell(command, shell=True, check=False)
+        else:
+            # Otherwise, run the command
+            shell(command, shell=True, check=False)
 
         # Clear the command input
         self.entry.delete(0, len(self.entry.get()))
