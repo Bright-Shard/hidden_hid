@@ -8,8 +8,11 @@ https://github.com/Bright-Shard/HiddenHID
 from tkinter import Tk, Entry, Menu
 # Run commands in a shell
 from subprocess import run as shell
-# For enabling debug
+# For enabling debug and exiting
 from sys import argv
+from sys import exit as bye
+# Filesystem stuff
+from os.path import exists as fileExists
 # Get host OS
 from platform import system as os
 # For RegExp, unfortunately
@@ -106,12 +109,12 @@ class App(Tk):
                 # Set the macOS volume to 0
                 'mute': 'osascript -e \'set Volume 0\'',
                 # Reverse shell (See above)
-                'shell': revShell
+                'shell': revShell,
             },
             # Windows shortcuts
             'Windows': {
                 # Reverse shell (See above)
-                'shell': revShell
+                'shell': revShell,
             }
         }
 
@@ -159,12 +162,12 @@ class App(Tk):
         if command == '':
             return
 
-        # Debug
-        self.log(f"Running command '{command}'...")
-
         # Exit if the command is 'exit'
         if command == "exit":
             self.quit()
+
+        # Debug
+        self.log(f"Running command '{command}'...")
 
         # Split the command up to get the arguments
         splitCommand = command.split(' ')
@@ -201,12 +204,13 @@ class App(Tk):
         """
         Quit the app and close any open terminals
         """
-        print("Exiting...")
+        self.log("Exiting...")
         # macOS stuff
         if self.os == 'Darwin':
             # Kill all terminals
             shell('killall Terminal', shell=True)
-        exit(0)
+        # Exit
+        bye(0)
 
 
 App().mainloop()
