@@ -1,4 +1,4 @@
-# Hidden HID by BrightShard
+# HiddenHID
 HiddenHID is a Tkinter program that makes an invisible window with a text box. Anything typed into the text box will
 be run invisibly in a terminal via the Subprocess library - effectively, this makes an invisible terminal app!
 
@@ -24,23 +24,27 @@ will come after the Windows ones.
 When typing a command into HiddenHID, you can type a shortcut name instead to run that shortcut.
 ## macOS Shortcuts:
 ### Wallpaper
-Format: `wallpaper <url>`, where `<url>` is the url of the image to set as the wallpaper.
+Format: `wallpaper <url>`
 
 This shortcut downloads the image, saves it to a file, sets it as the wallpaper, and then deletes the file.
 ### Volume
-Format: `volume <amount>`, where amount is the volume (From 0 to 10)
+Format: `volume <amount>`
 
-This shortcut sets the computer's volume to the provided value.
+This shortcut sets the computer's volume to the provided value (from 0-10).
 ### Mute
 Format: `mute`
 
 This shortcut sets the computer's volume to 0.
-### Shell
-Format: `shell <ip> <port>`, where `<ip>` is the attacker's IP and `<port>` is the port of the listener.
 
-This shortcut spawns a reverse shell to the provided IP and port.
-## Windows Shortcuts:
-### Shell
-Format: `shell <ip> <port>`, where `<ip>` is the attacker's IP and `<port>` is the port of the listener.
 
-This shortcut spawns a reverse shell to the provided IP and port.
+## Universal Shortcuts:
+### Curl
+Format: `curl <url> <fileID>`
+
+This shortcut doesn't actually use cURL (it uses the Requests library). Downloaded files are stored as temporary files with Python's `tempfile` module (this should make them harder to detect). The file can be accessed again with the `file` shortcut.
+### File
+Format: `file <fileID> <action>`
+
+This shortcut can access files downloaded with the `curl` shortcut. Just provide the same name/id to `<fileID>` as the one in the `curl` shortcut, and you can do one of the following actions:
+- `run`: Run the file
+- More coming soon (yeah, I know, only one action right now - just gimme time to add more :P)

