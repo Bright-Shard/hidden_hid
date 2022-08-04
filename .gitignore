@@ -1,6 +1,6 @@
 .vscode
-build
 .idea
-bin
-test.txt
-*.spec
+
+# Added by cargo
+
+/target
