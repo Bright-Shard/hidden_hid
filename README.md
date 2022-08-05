@@ -1,3 +1,6 @@
+# Note: HiddenHID is currently being rewritten in Rust
+This will result in faster speeds and MUCH smaller binary sizes, but will take time. The old Python version will be preserved on the Python branch.
+
 # HiddenHID
 HiddenHID is a Tkinter program that makes an invisible window with a text box. Anything typed into the text box will
 be run invisibly in a terminal via the Subprocess library - effectively, this makes an invisible terminal app!
