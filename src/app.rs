@@ -32,12 +32,16 @@ impl eframe::App for UI {
                     if cmd != "" {
                         // Handle the command
                         match self.text.as_str() {
+                            // These commands require access to the context/app variables,
+                            // so they're handled here instead of the normal handler
                             "exit" => app.quit(),
                             "show" => ctx.set_visuals(egui::Visuals::dark()),
                             "hide" => ctx.set_visuals(style::INVISIBLE_STYLE),
                             _ => {
+                                // If the command starts with $, run it in a shell
                                 if cmd.chars().nth(0).unwrap() == '$' {
                                     brightscript::run_in_shell(&self.text);
+                                // Otherwise treat it as BrightScript
                                 } else {
                                     brightscript::parse(&self.text)
                                 }

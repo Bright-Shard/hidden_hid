@@ -1,50 +1,28 @@
+# WARNING: RUST VERSION IS STILL IN DEVELOPMENT
+
 # HiddenHID
-HiddenHID is a Tkinter program that makes an invisible window with a text box. Anything typed into the text box will
-be run invisibly in a terminal via the Subprocess library - effectively, this makes an invisible terminal app!
 
-As the name implies, HiddenHID is intended for HID attacks, so that terminal commands can be run without the user
-seeing anything appear on their screen. It is cross-platform, but I'm adding platform-specific features that use the OS
-to make HiddenHID even more hidden (see below).
+*HID attacks - supercharged.*
 
-HiddenHID also has several built-in "shortcut" commands. They help automate long tasks. See below for more info.
+HiddenHID is an all-in-one HID framework, making HID attacks universal, easy to write, and completely invisible. While normal HID attacks open a terminal (or similar
+app) - in plain sight - and type out commands manually, HiddenHID attacks launch HiddenHID and execute commands efficiently and invisibly.
 
-## macOS-Specific Features
-- Binaries are named "Finder" and copy Finder's menus, making it look like the Finder app is open
-- When HiddenHID launches, it makes all terminals invisible with AppleScript
-- When HiddenHID closes, it force-quits all terminals with AppleScript
+## Features
 
-## Windows-Specific Features
-- The app doesn't appear in the app/task bar, so there's no sign that HiddenHID is actually running (minus Task Manager)
+- **Cross-platform**: Write one payload for every target, instead of separate, OS-dependant payloads.
+- **Easy to Write**: HiddenHID payloads only need a few simple commands to run advanced attacks.
+- **Invisible**: As the name suggests, HiddenHID is completely hidden from view. It's actually an invisible application with a text box.
 
-## Linux-Specific Features
-So many things change depending on the distro, I'm not sure if I'll ever add Linux-specific features. If I do, they
-will come after the Windows ones.
+## How it Works
 
-# Shortcut Commands
-When typing a command into HiddenHID, you can type a shortcut name instead to run that shortcut.
-## macOS Shortcuts:
-### Wallpaper
-Format: `wallpaper <url>`
+Behind the scenes, HiddenHID is just an app with a text box (Don't believe me? Run the "show" and "hide" commands!). Unlike other apps, though, it renders completely
+invisibly on the desktop, making it hard for a target to realize anything is happening.
 
-This shortcut downloads the image, saves it to a file, sets it as the wallpaper, and then deletes the file.
-### Volume
-Format: `volume <amount>`
+## Programming notes
 
-This shortcut sets the computer's volume to the provided value (from 0-10).
-### Mute
-Format: `mute`
+This Rust version of HiddenHID is more efficient, but the code may be harder to read for
+new programmers or people who don't use Rust. Therefore, I'm preserving the (old) Python
+version on the Python branch.
 
-This shortcut sets the computer's volume to 0.
-
-
-## Universal Shortcuts:
-### Curl
-Format: `curl <url> <fileID>`
-
-This shortcut doesn't actually use cURL (it uses the Requests library). Downloaded files are stored as temporary files with Python's `tempfile` module (this should make them harder to detect). The file can be accessed again with the `file` shortcut.
-### File
-Format: `file <fileID> <action>`
-
-This shortcut can access files downloaded with the `curl` shortcut. Just provide the same name/id to `<fileID>` as the one in the `curl` shortcut, and you can do one of the following actions:
-- `run`: Run the file
-- More coming soon (yeah, I know, only one action right now - just gimme time to add more :P)
+I switched to Rust because it compiles into much smaller binaries - between 1 and 3 mb instead of almost 10 in Python, and waiting for long downloads in an HID attack
+doesn't work very well. Rust is also much faster than Python.
